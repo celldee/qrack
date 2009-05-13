@@ -385,8 +385,8 @@ puts ERB.new(%q[
         <%- end -%>
       end
       <%- end -%>
+    end
 
     <%- end -%>
-    end
   end
 ].gsub!(/^  /,''), nil, '>-%').result(binding)
