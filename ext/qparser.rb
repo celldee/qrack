@@ -202,6 +202,7 @@ doc = Document.new(File.new(specpath))
                     'no-ack' => 'bit',
                     'no local' => 'bit',
                     'no-local' => 'bit',
+										'peer properties' => 'table',
                     'peer-properties' => 'table',
                     'destination' => 'shortstr',
                     'duration' => 'longlong',
@@ -277,7 +278,7 @@ puts ERB.new(%q[
 
       RESPONSES = {
         <%- other_constants.each do |value, name| -%>
-        <%= value %> => :<%= name.tr('-', '_').upcase -%>,
+        <%= value %> => :<%= name.gsub(/\s|'-'/, '_').upcase -%>,
         <%- end -%>
       }
 
