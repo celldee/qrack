@@ -107,7 +107,7 @@ def fields(doc, element)
   element.elements.each("field") do |field|
     field_hash = {}
     field_hash[:name] = field.attributes["name"].tr(' ', '-')
-    field_hash[:domain] = field.attributes["domain"] || field.attributes["type"]
+    field_hash[:domain] = field.attributes["type"] || field.attributes["domain"]
 
 		# Convert domain type if necessary
 		conv_arr = convert_type(field_hash[:domain])
@@ -177,18 +177,40 @@ doc = Document.new(File.new(specpath))
 # Declare type conversion hash
 @type_conversion = {'path' => 'shortstr',
 										'known hosts' => 'shortstr',
+										'known-hosts' => 'shortstr',
 										'reply code' => 'short',
+										'reply-code' => 'short',
 										'reply text' => 'shortstr',
+										'reply-text' => 'shortstr',
 										'class id' => 'short',
+										'class-id' => 'short',
 										'method id' => 'short',
+										'method-id' => 'short',
+										'channel-id' => 'longstr',
 										'access ticket' => 'short',
+										'access-ticket' => 'short',
 										'exchange name' => 'shortstr',
+										'exchange-name' => 'shortstr',
 										'queue name' => 'shortstr',
+										'queue-name' => 'shortstr',
 										'consumer tag' => 'shortstr',
+										'consumer-tag' => 'shortstr',
 										'delivery tag' => 'longlong',
+										'delivery-tag' => 'longlong',
 										'redelivered' => 'bit',
 										'no ack' => 'bit',
-										'no local' => 'bit'
+										'no-ack' => 'bit',
+										'no local' => 'bit',
+										'no-local' => 'bit',
+										'peer-properties' => 'table',
+										'destination' => 'shortstr',
+										'duration' => 'longlong',
+										'security-token' => 'longstr',
+										'reject-code' => 'short',
+										'reject-text' => 'shortstr',
+										'offset' => 'longlong',
+										'no-wait' => 'bit',
+										'message-count' => 'long'
 									 }
 				
 # Spec details
