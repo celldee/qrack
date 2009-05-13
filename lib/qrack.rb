@@ -6,11 +6,17 @@ require 'protocol/protocol'
 require 'transport/buffer'
 require 'transport/frame'
 
+require 'client'
+
 module Qrack
 	
 	include Protocol
 	include Transport
 	
+	# Errors
+	class BufferOverflowError < StandardError; end
+  class InvalidTypeError < StandardError; end
+
   # Qrack version number
   VERSION = '0.0.1'
 

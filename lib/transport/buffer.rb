@@ -123,7 +123,7 @@ module Qrack
 
 	          @bits.shift
 	        else
-	          raise Bunny::InvalidTypeError, "Cannot read data of type #{type}"
+	          raise Qrack::InvalidTypeError, "Cannot read data of type #{type}"
 	        end
 	      end
       
@@ -220,7 +220,7 @@ module Qrack
 	          write(type, value) unless type == :bit
 	        end
 	      else
-	        raise Bunny::InvalidTypeError, "Cannot write data of type #{type}"
+	        raise Qrack::InvalidTypeError, "Cannot write data of type #{type}"
 	      end
       
 	      self
@@ -230,21 +230,21 @@ module Qrack
 	      begin
 	        cur_data, cur_pos = @data.clone, @pos
 	        yield self
-	      rescue Bunny::BufferOverflowError
+	      rescue Qrack::BufferOverflowError
 	        @data, @pos = cur_data, cur_pos
 	        nil
 	      end
 	    end
 
 	    def _read(size, pack = nil)
-	      if @data.is_a?(Bunny::Client)
+	      if @data.is_a?(Qrack::Client)
 	        raw = @data.read(size)
 	        return raw if raw.nil? or pack.nil? 
 	        return raw.unpack(pack).first
 	      end
 
 	      if @pos + size > length
-	        raise Bunny::BufferOverflowError
+	        raise Qrack::BufferOverflowError
 	      else
 	        data = @data[@pos,size]
 	        @data[@pos,size] = ''
