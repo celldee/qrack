@@ -51,7 +51,7 @@ def domain_types(doc, major, minor, revision)
   add_arr = add_types(major, minor, revision)
   type_arr = dt_arr + add_arr
 
-	# Return sorted array
+  # Return sorted array
   type_arr.uniq.sort
 end
 
@@ -64,16 +64,16 @@ def classes(doc, major, minor, revision)
     cls_hash = {}
     cls_hash[:name] = element.attributes["name"]
     cls_hash[:index] = element.attributes["index"]
-		# Get fields for class
+    # Get fields for class
     field_arr = fields(doc, element)
-		cls_hash[:fields] = field_arr
+    cls_hash[:fields] = field_arr
     # Get methods for class
     meth_arr = class_methods(doc, element)
-		# Add missing methods
-		add_arr =[]
-		add_arr = add_methods(major, minor, revision) if cls_hash[:name] == 'queue'
-		method_arr = meth_arr + add_arr
-		# Add array to class hash
+    # Add missing methods
+    add_arr =[]
+    add_arr = add_methods(major, minor, revision) if cls_hash[:name] == 'queue'
+    method_arr = meth_arr + add_arr
+    # Add array to class hash
     cls_hash[:methods] = method_arr
     cls_arr << cls_hash
   end
@@ -109,10 +109,10 @@ def fields(doc, element)
     field_hash[:name] = field.attributes["name"].tr(' ', '-')
     field_hash[:domain] = field.attributes["type"] || field.attributes["domain"]
 
-		# Convert domain type if necessary
-		conv_arr = convert_type(field_hash[:domain])
-		field_hash[:domain] = conv_arr[0][1] unless conv_arr.empty?
-		
+    # Convert domain type if necessary
+    conv_arr = convert_type(field_hash[:domain])
+    field_hash[:domain] = conv_arr[0][1] unless conv_arr.empty?
+    
     field_arr << field_hash
   end
   
@@ -122,44 +122,44 @@ def fields(doc, element)
 end
 
 def add_types(major, minor, revision)
-	type_arr = []
-	type_arr = ['long', 'longstr', 'octet', 'timestamp'] if (major == '8' and minor == '0' and revision == '0')
+  type_arr = []
+  type_arr = ['long', 'longstr', 'octet', 'timestamp'] if (major == '8' and minor == '0' and revision == '0')
   type_arr
 end
 
 def add_methods(major, minor, revision)
-	meth_arr = []
-	
-	if (major == '8' and minor == '0' and revision == '0')
-		# Add Queue Unbind method
-		meth_hash = {:name => 'unbind',
-								 :index => '50',
-								 :fields => [{:name => 'ticket', :domain => 'short'},
-														 {:name => 'queue', :domain => 'shortstr'},   
-										         {:name => 'exchange', :domain => 'shortstr'},   
-										         {:name => 'routing_key', :domain => 'shortstr'},   
-										         {:name => 'arguments', :domain => 'table'}
-														]
-								}
-								
-		meth_arr << meth_hash
-		
-		# Add Queue Unbind-ok method
-		meth_hash = {:name => 'unbind-ok',
-								 :index => '51',
-								 :fields => []
-								}
-								
-		meth_arr << meth_hash
-	end
-	
-	# Return methods
-	meth_arr
-	
+  meth_arr = []
+  
+  if (major == '8' and minor == '0' and revision == '0')
+    # Add Queue Unbind method
+    meth_hash = {:name => 'unbind',
+                 :index => '50',
+                 :fields => [{:name => 'ticket', :domain => 'short'},
+                             {:name => 'queue', :domain => 'shortstr'},   
+                             {:name => 'exchange', :domain => 'shortstr'},   
+                             {:name => 'routing_key', :domain => 'shortstr'},   
+                             {:name => 'arguments', :domain => 'table'}
+                            ]
+                }
+                
+    meth_arr << meth_hash
+    
+    # Add Queue Unbind-ok method
+    meth_hash = {:name => 'unbind-ok',
+                 :index => '51',
+                 :fields => []
+                }
+                
+    meth_arr << meth_hash
+  end
+  
+  # Return methods
+  meth_arr
+  
 end
 
 def convert_type(name)
-	type_arr = @type_conversion.select {|k,v| k == name}
+  type_arr = @type_conversion.select {|k,v| k == name}
 end
 
 # Start of Main program
@@ -176,43 +176,43 @@ doc = Document.new(File.new(specpath))
 
 # Declare type conversion hash
 @type_conversion = {'path' => 'shortstr',
-										'known hosts' => 'shortstr',
-										'known-hosts' => 'shortstr',
-										'reply code' => 'short',
-										'reply-code' => 'short',
-										'reply text' => 'shortstr',
-										'reply-text' => 'shortstr',
-										'class id' => 'short',
-										'class-id' => 'short',
-										'method id' => 'short',
-										'method-id' => 'short',
-										'channel-id' => 'longstr',
-										'access ticket' => 'short',
-										'access-ticket' => 'short',
-										'exchange name' => 'shortstr',
-										'exchange-name' => 'shortstr',
-										'queue name' => 'shortstr',
-										'queue-name' => 'shortstr',
-										'consumer tag' => 'shortstr',
-										'consumer-tag' => 'shortstr',
-										'delivery tag' => 'longlong',
-										'delivery-tag' => 'longlong',
-										'redelivered' => 'bit',
-										'no ack' => 'bit',
-										'no-ack' => 'bit',
-										'no local' => 'bit',
-										'no-local' => 'bit',
-										'peer-properties' => 'table',
-										'destination' => 'shortstr',
-										'duration' => 'longlong',
-										'security-token' => 'longstr',
-										'reject-code' => 'short',
-										'reject-text' => 'shortstr',
-										'offset' => 'longlong',
-										'no-wait' => 'bit',
-										'message-count' => 'long'
-									 }
-				
+                    'known hosts' => 'shortstr',
+                    'known-hosts' => 'shortstr',
+                    'reply code' => 'short',
+                    'reply-code' => 'short',
+                    'reply text' => 'shortstr',
+                    'reply-text' => 'shortstr',
+                    'class id' => 'short',
+                    'class-id' => 'short',
+                    'method id' => 'short',
+                    'method-id' => 'short',
+                    'channel-id' => 'longstr',
+                    'access ticket' => 'short',
+                    'access-ticket' => 'short',
+                    'exchange name' => 'shortstr',
+                    'exchange-name' => 'shortstr',
+                    'queue name' => 'shortstr',
+                    'queue-name' => 'shortstr',
+                    'consumer tag' => 'shortstr',
+                    'consumer-tag' => 'shortstr',
+                    'delivery tag' => 'longlong',
+                    'delivery-tag' => 'longlong',
+                    'redelivered' => 'bit',
+                    'no ack' => 'bit',
+                    'no-ack' => 'bit',
+                    'no local' => 'bit',
+                    'no-local' => 'bit',
+                    'peer-properties' => 'table',
+                    'destination' => 'shortstr',
+                    'duration' => 'longlong',
+                    'security-token' => 'longstr',
+                    'reject-code' => 'short',
+                    'reject-text' => 'shortstr',
+                    'offset' => 'longlong',
+                    'no-wait' => 'bit',
+                    'message-count' => 'long'
+                   }
+        
 # Spec details
 spec_info = spec_details(doc)
 
@@ -240,153 +240,161 @@ puts ERB.new(%q[
   #
   # DO NOT EDIT! (edit protocol/qparser.rb instead, and run 'ruby qparser ['spec xml file'] > spec.rb')
 
-  module Transport
-    class Frame
-      def self.types
-        @types ||= {}
-      end
-
-      def self.Frame id
-        (@_base_frames ||= {})[id] ||= Class.new(Frame) do
-          class_eval %[
-            def self.inherited klass
-              klass.const_set(:ID, #{id})
-              Frame.types[#{id}] = klass
-            end
-          ]
+  module Qrack
+    module Transport
+      class Frame
+        def self.types
+          @types ||= {}
         end
+
+        def self.Frame id
+          (@_base_frames ||= {})[id] ||= Class.new(Frame) do
+            class_eval %[
+              def self.inherited klass
+                klass.const_set(:ID, #{id})
+                Frame.types[#{id}] = klass
+              end
+            ]
+          end
+        end
+
+        <%- frame_constants.each do |value, name| -%>
+        class <%= name.ljust(9) -%> < Frame( <%= value.to_s -%> ); end
+        <%- end -%>
+
+        FOOTER = <%= frame_footer %>
       end
-
-      <%- frame_constants.each do |value, name| -%>
-      class <%= name.ljust(9) -%> < Frame( <%= value.to_s -%> ); end
-      <%- end -%>
-
-      FOOTER = <%= frame_footer %>
     end
   end
 
-  module Protocol
-    HEADER        = "AMQP".freeze
-    VERSION_MAJOR = <%= spec_info['major'] %>
-    VERSION_MINOR = <%= spec_info['minor'] %>
-    REVISION      = <%= spec_info['revision'] %>
-    PORT          = <%= spec_info['port'] %>
+  module Qrack
+    module Protocol
+      HEADER        = "AMQP".freeze
+      VERSION_MAJOR = <%= spec_info['major'] %>
+      VERSION_MINOR = <%= spec_info['minor'] %>
+      REVISION      = <%= spec_info['revision'] %>
+      PORT          = <%= spec_info['port'] %>
 
-    RESPONSES = {
-      <%- other_constants.each do |value, name| -%>
-      <%= value %> => :<%= name.tr('-', '_').upcase -%>,
-      <%- end -%>
-    }
+      RESPONSES = {
+        <%- other_constants.each do |value, name| -%>
+        <%= value %> => :<%= name.tr('-', '_').upcase -%>,
+        <%- end -%>
+      }
 
-    FIELDS = [
-      <%- data_types.each do |d| -%>
-      :<%= d -%>,
-      <%- end -%>
-    ]
+      FIELDS = [
+        <%- data_types.each do |d| -%>
+        :<%= d -%>,
+        <%- end -%>
+      ]
 
-    class Class
-      class << self
-        FIELDS.each do |f|
-          class_eval %[
-            def #{f} name
-              properties << [ :#{f}, name ] unless properties.include?([:#{f}, name])
-              attr_accessor name
-            end
-          ]
-        end
-        
-        def properties() @properties ||= [] end
-
-        def id()   self::ID end
-        def name() self::NAME end
-      end
-
-      class Method
+      class Class
         class << self
           FIELDS.each do |f|
             class_eval %[
               def #{f} name
-                arguments << [ :#{f}, name ] unless arguments.include?([:#{f}, name])
+                properties << [ :#{f}, name ] unless properties.include?([:#{f}, name])
                 attr_accessor name
               end
             ]
           end
+        
+          def properties() @properties ||= [] end
 
-          def arguments() @arguments ||= [] end
-
-          def parent() Protocol.const_get(self.to_s[/Protocol::(.+?)::/,1]) end
-          def id()     self::ID end
-          def name()   self::NAME end
+          def id()   self::ID end
+          def name() self::NAME end
         end
 
-        def == b
-          self.class.arguments.inject(true) do |eql, (type, name)|
-            eql and __send__("#{name}") == b.__send__("#{name}")
+        class Method
+          class << self
+            FIELDS.each do |f|
+              class_eval %[
+                def #{f} name
+                  arguments << [ :#{f}, name ] unless arguments.include?([:#{f}, name])
+                  attr_accessor name
+                end
+              ]
+            end
+
+            def arguments() @arguments ||= [] end
+
+            def parent() Protocol.const_get(self.to_s[/Protocol::(.+?)::/,1]) end
+            def id()     self::ID end
+            def name()   self::NAME end
+          end
+
+          def == b
+            self.class.arguments.inject(true) do |eql, (type, name)|
+              eql and __send__("#{name}") == b.__send__("#{name}")
+            end
+          end
+        end
+
+        def self.methods() @methods ||= {} end
+
+        def self.Method(id, name)
+          @_base_methods ||= {}
+          @_base_methods[id] ||= ::Class.new(Method) do
+            class_eval %[
+              def self.inherited klass
+                klass.const_set(:ID, #{id})
+                klass.const_set(:NAME, :#{name.to_s})
+                klass.parent.methods[#{id}] = klass
+                klass.parent.methods[klass::NAME] = klass
+              end
+            ]
           end
         end
       end
 
-      def self.methods() @methods ||= {} end
+      def self.classes() @classes ||= {} end
 
-      def self.Method(id, name)
-        @_base_methods ||= {}
-        @_base_methods[id] ||= ::Class.new(Method) do
+      def self.Class(id, name)
+        @_base_classes ||= {}
+        @_base_classes[id] ||= ::Class.new(Class) do
           class_eval %[
             def self.inherited klass
               klass.const_set(:ID, #{id})
               klass.const_set(:NAME, :#{name.to_s})
-              klass.parent.methods[#{id}] = klass
-              klass.parent.methods[klass::NAME] = klass
+              Protocol.classes[#{id}] = klass
+              Protocol.classes[klass::NAME] = klass
             end
           ]
         end
       end
     end
-
-    def self.classes() @classes ||= {} end
-
-    def self.Class(id, name)
-      @_base_classes ||= {}
-      @_base_classes[id] ||= ::Class.new(Class) do
-        class_eval %[
-          def self.inherited klass
-            klass.const_set(:ID, #{id})
-            klass.const_set(:NAME, :#{name.to_s})
-            Protocol.classes[#{id}] = klass
-            Protocol.classes[klass::NAME] = klass
-          end
-        ]
-      end
-    end
   end
 
-  module Protocol
-    <%- class_defs.each do |h| -%>
-    class <%= h[:name].capitalize.ljust(12) %> < Class( <%= h[:index].to_s.rjust(3) %>, :<%= h[:name].ljust(12) %> ); end
-    <%- end -%>
-
-    <%- class_defs.each do |c| -%>
-    class <%= c[:name].capitalize %>
-	    <%- c[:fields].each do |p| -%>
-      <%= p[:domain].ljust(10) %> :<%= p[:name].tr('-','_') %>
-      <%- end if c[:fields] -%>
-  
-      <%- c[:methods].each do |m| -%>
-      class <%= m[:name].capitalize.gsub(/-(.)/){ "#{$1.upcase}"}.ljust(12) %> < Method( <%= m[:index].to_s.rjust(3) %>, :<%= m[:name].tr('- ','_').ljust(14) %> ); end
+  module Qrack
+    module Protocol
+      <%- class_defs.each do |h| -%>
+      class <%= h[:name].capitalize.ljust(12) %> < Class( <%= h[:index].to_s.rjust(3) %>, :<%= h[:name].ljust(12) %> ); end
       <%- end -%>
 
-      <%- c[:methods].each do |m| -%>
-	
-      class <%= m[:name].capitalize.gsub(/-(.)/){ "#{$1.upcase}"} %>
-        <%- m[:fields].each do |a| -%>
-        <%- if a[:domain] -%>
-        <%= a[:domain].ljust(16) %> :<%= a[:name].tr('- ','_') %>
+      <%- class_defs.each do |c| -%>
+      class <%= c[:name].capitalize %>
+        <%- c[:fields].each do |p| -%>
+        <%= p[:domain].ljust(10) %> :<%= p[:name].tr('-','_') %>
+        <%- end if c[:fields] -%>
+  
+        <%- c[:methods].each do |m| -%>
+        class <%= m[:name].capitalize.gsub(/-(.)/){ "#{$1.upcase}"}.ljust(12) %> < Method( <%= m[:index].to_s.rjust(3) %>, :<%= m[:name].tr('- ','_').ljust(14) %> ); end
         <%- end -%>
+
+        <%- c[:methods].each do |m| -%>
+  
+        class <%= m[:name].capitalize.gsub(/-(.)/){ "#{$1.upcase}"} %>
+          <%- m[:fields].each do |a| -%>
+          <%- if a[:domain] -%>
+          <%= a[:domain].ljust(16) %> :<%= a[:name].tr('- ','_') %>
+          <%- end -%>
+          <%- end -%>
+        end
         <%- end -%>
+
       end
+
       <%- end -%>
     end
-
-    <%- end -%>
+  
   end
 ].gsub!(/^  /,''), nil, '>-%').result(binding)
