@@ -1,7 +1,8 @@
 module Qrack
 	module Transport #:nodoc: all
 	  class Buffer
-    
+    	require 'enumerator' if RUBY_VERSION < '1.8.7'
+
 	    def initialize data = ''
 	      @data = data
 	      @pos = 0
