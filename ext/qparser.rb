@@ -255,7 +255,7 @@ ERB.new(%q[
 
       RESPONSES = {
         <%- other_constants.each do |value, name| -%>
-        <%= value %> => :<%= name.gsub(/\s|'-'/, '_').upcase -%>,
+        <%= value %> => :<%= name.gsub(/\s|-/, '_').upcase -%>,
         <%- end -%>
       }
 
