@@ -1,7 +1,16 @@
+if [].map.respond_to? :with_index
+  class Array #:nodoc:
+    def enum_with_index
+      each.with_index
+    end
+  end
+else
+  require 'enumerator'
+end
+
 module Qrack
 	module Transport #:nodoc: all
 	  class Buffer
-    	require 'enumerator' if RUBY_VERSION < '1.8.7'
 
 	    def initialize data = ''
 	      @data = data
