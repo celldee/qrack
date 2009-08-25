@@ -1,9 +1,7 @@
-require 'rexml/document'
+require 'nokogiri'
 require 'erb'
 require 'pathname'
 require 'yaml'
-
-include REXML
 
 class InputError < StandardError; end
 
@@ -12,12 +10,12 @@ def spec_details(doc)
   
   spec_details = {}
 
-  root = doc.root
-  spec_details['major'] = root.attributes["major"]
-  spec_details['minor'] = root.attributes["minor"]
-  spec_details['revision'] = root.attributes["revision"] || '0'
-  spec_details['port'] = root.attributes["port"]
-  spec_details['comment'] = root.attributes["comment"] || 'No comment'
+  root = doc.at('amqp')
+  spec_details['major'] = root['major']
+  spec_details['minor'] = root['minor']
+  spec_details['revision'] = root['revision'] || '0'
+  spec_details['port'] = root['port']
+  spec_details['comment'] = root['comment'] || 'No comment'
   
   spec_details
 end
@@ -28,12 +26,12 @@ def process_constants(doc)
   frame_constants = {}
   other_constants = {}
 
-  doc.elements.each("amqp/constant") do |element|
-    if element.attributes["name"].match(/^frame/)
-      frame_constants[element.attributes["value"].to_i] = 
-      element.attributes["name"].sub(/^frame./,'').split(/\s|-/).map{|w| w.downcase.capitalize}.join
+  doc.xpath('//constant').each do |element|
+    if element['name'].match(/^frame/)
+      frame_constants[element['value'].to_i] = 
+      element['name'].sub(/^frame./,'').split(/\s|-/).map{|w| w.downcase.capitalize}.join
     else
-      other_constants[element.attributes["value"]] = element.attributes["name"]
+      other_constants[element['value']] = element['name']
     end
   end
   
@@ -44,8 +42,8 @@ def domain_types(doc, major, minor, revision)
   # AMQP domain types
 
   dt_arr = []
-  doc.elements.each("amqp/domain") do |element|
-     dt_arr << element.attributes["type"]
+  doc.xpath('amqp/domain').each do |element|
+     dt_arr << element['type']
   end
   
   # Add domain types for specific document
@@ -61,10 +59,10 @@ def classes(doc, major, minor, revision)
 
   cls_arr = []
   
-  doc.elements.each("amqp/class") do |element|
+  doc.xpath('amqp/class').each do |element|
     cls_hash = {}
-    cls_hash[:name] = element.attributes["name"]
-    cls_hash[:index] = element.attributes["index"]
+    cls_hash[:name] = element['name']
+    cls_hash[:index] = element['index']
     # Get fields for class
     field_arr = fields(doc, element)
     cls_hash[:fields] = field_arr
@@ -87,10 +85,10 @@ def class_methods(doc, cls)
   meth_arr = []
   
   # Get methods for class
-  cls.elements.each("method") do |method|
+  cls.xpath('./method').each do |method|
     meth_hash = {}
-    meth_hash[:name] = method.attributes["name"]
-    meth_hash[:index] = method.attributes["index"]
+    meth_hash[:name] = method['name']
+    meth_hash[:index] = method['index']
     # Get fields for method
     field_arr = fields(doc, method)
     meth_hash[:fields] = field_arr
@@ -105,14 +103,14 @@ def fields(doc, element)
   field_arr = []
   
   # Get fields for element
-  element.elements.each("field") do |field|
+  element.xpath('./field').each do |field|
     field_hash = {}
-    field_hash[:name] = field.attributes["name"].tr(' ', '-')
-    field_hash[:domain] = field.attributes["type"] || field.attributes["domain"]
+    field_hash[:name] = field['name'].tr(' ', '-')
+    field_hash[:domain] = field['type'] || field['domain']
 
     # Convert domain type if necessary
     conv_arr = convert_type(field_hash[:domain])
-    field_hash[:domain] = conv_arr[0][1] unless conv_arr.empty?
+    field_hash[:domain] = conv_arr[field_hash[:domain]] unless conv_arr.empty?
     
     field_arr << field_hash
   end
@@ -174,7 +172,7 @@ path = Pathname.new(specpath)
 specfile = path.basename.to_s
 
 # Read in the spec file
-doc = Document.new(File.new(specpath))
+doc = Nokogiri::XML(File.new(specpath))
 
 # Declare type conversion hash
 @type_conversion = {'path' => 'shortstr',
