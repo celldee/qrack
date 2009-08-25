@@ -12,7 +12,7 @@ The aim of the Qrack project is to produce a Ruby implementation of the [AMQP](h
 
 * Qrack should generate the classes from a particular version of the AMQP specification. Therefore, if you generate from the 0-9-1 spec you get a set of 0-9-1 protocol classes.
 
-* REXML will be used for XML parsing, as there is no parsing speed issue and REXML is a standard Ruby library. An XML specification will only need to be parsed once to produce the protocol classes and then the library will be ready for use.
+* Nokogiri will be used for XML parsing, because although there is no parsing speed issue, REXML does not seem to work with Ruby 1.9. An XML specification will only need to be parsed once to produce the protocol classes and then the library will be ready for use.
 
 * There should be no dependency on particular versions of the AMQP XML specification.
 
