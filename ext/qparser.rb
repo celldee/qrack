@@ -1,135 +1,113 @@
-require 'nokogiri'
+require 'json'
 require 'erb'
 require 'pathname'
 require 'yaml'
 
-class InputError < StandardError; end
-
-def spec_details(doc)
-  # AMQP spec details
-  
-  spec_details = {}
-
-  root = doc.at('amqp')
-  spec_details['major'] = root['major']
-  spec_details['minor'] = root['minor']
-  spec_details['revision'] = root['revision'] || '0'
-  spec_details['port'] = root['port']
-  spec_details['comment'] = root['comment'] || 'No comment'
-  
-  spec_details
+def spec_v8_0_0?(spec)
+  spec['major'] == '8' && spec['minor'] == '0' && spec['revision'] == '0'
 end
 
-def process_constants(doc)
+def spec_details(spec)
+  meta = {}
+  
+  meta['major']     = spec['major-version']
+  meta['minor']     = spec['minor-version']
+  meta['revision']  = spec['revision'] || '0'
+  meta['port']      = spec['port']
+  meta['comment']   = "AMQ Protocol version #{meta['major']}.#{meta['minor']}.#{meta['revision']}"
+  
+  meta
+end
+
+def process_constants(spec)
   # AMQP constants
   
   frame_constants = {}
   other_constants = {}
 
-  doc.xpath('//constant').each do |element|
-    if element['name'].match(/^frame/)
-      frame_constants[element['value'].to_i] = 
-      element['name'].sub(/^frame./,'').split(/\s|-/).map{|w| w.downcase.capitalize}.join
+  spec['constants'].each do |constant|
+    if constant['name'].match(/^frame/i)
+      frame_constants[constant['value'].to_i] = 
+      constant['name'].sub(/^frame./i,'').split(/\s|-/).map{|w| w.downcase.capitalize}.join
     else
-      other_constants[element['value']] = element['name']
+      other_constants[constant['value']] = constant['name']
     end
   end
   
   [frame_constants.sort, other_constants.sort]
 end
 
-def domain_types(doc, major, minor, revision)
+def domain_types(spec, major, minor, revision)
   # AMQP domain types
-
-  dt_arr = []
-  doc.xpath('amqp/domain').each do |element|
-     dt_arr << element['type']
+  
+  # add types that may be missing in the spec version
+  dt_arr = add_types(spec)
+  spec["domains"].each do |domain|
+    # JSON spec gives domain types as two element arrays like ["channel-id", "longstr"]
+    dt_arr << domain.last
   end
   
-  # Add domain types for specific document
-  add_arr = add_types(major, minor, revision)
-  type_arr = dt_arr + add_arr
-
   # Return sorted array
-  type_arr.uniq.sort
+  dt_arr.uniq.sort
 end
 
-def classes(doc, major, minor, revision)
+def classes(spec, major, minor, revision)
   # AMQP classes
-
-  cls_arr = []
-  
-  doc.xpath('amqp/class').each do |element|
+  spec['classes'].map do |amqp_class|
     cls_hash = {}
-    cls_hash[:name] = element['name']
-    cls_hash[:index] = element['index']
+    cls_hash[:name]   = amqp_class['name']
+    cls_hash[:index]  = amqp_class['id']
     # Get fields for class
-    field_arr = fields(doc, element)
-    cls_hash[:fields] = field_arr
+    cls_hash[:fields] = fields(amqp_class) # are these amqp_class["properties"] ?
     # Get methods for class
-    meth_arr = class_methods(doc, element)
+    meth_arr          = class_methods(amqp_class)
     # Add missing methods
     add_arr =[]
-    add_arr = add_methods(major, minor, revision) if cls_hash[:name] == 'queue'
+    add_arr = add_methods(spec) if cls_hash[:name] == 'queue'
     method_arr = meth_arr + add_arr
     # Add array to class hash
     cls_hash[:methods] = method_arr
-    cls_arr << cls_hash
+    cls_hash
   end
-  
-  # Return class information array
-  cls_arr
 end
 
-def class_methods(doc, cls)
-  meth_arr = []
-  
-  # Get methods for class
-  cls.xpath('./method').each do |method|
+# Get methods for class
+def class_methods(amqp_class)
+  amqp_class['methods'].map do |method|
     meth_hash = {}
-    meth_hash[:name] = method['name']
-    meth_hash[:index] = method['index']
+    meth_hash[:name]  = method['name']
+    meth_hash[:index] = method['id']
     # Get fields for method
-    field_arr = fields(doc, method)
-    meth_hash[:fields] = field_arr
-    meth_arr << meth_hash
+    meth_hash[:fields] = fields(method)
+    meth_hash
   end
-  
-  # Return methods
-  meth_arr
 end
 
-def fields(doc, element)
-  field_arr = []
-  
-  # Get fields for element
-  element.xpath('./field').each do |field|
+# Get the fields for a class or method
+def fields(element)
+  # The JSON spec puts these in "properties" for a class and "arguments" for a
+  # method
+  (element['arguments'] || element['properties'] || []).map do |field|
     field_hash = {}
-    field_hash[:name] = field['name'].tr(' ', '-')
+    field_hash[:name]   = field['name'].tr(' ', '-')
     field_hash[:domain] = field['type'] || field['domain']
 
     # Convert domain type if necessary
     conv_arr = convert_type(field_hash[:domain])
-    field_hash[:domain] = conv_arr[field_hash[:domain]] unless conv_arr.empty?
+    field_hash[:domain] = conv_arr.last unless conv_arr.empty?
     
-    field_arr << field_hash
+    field_hash
   end
-  
-  #  Return fields
-  field_arr
-  
 end
 
-def add_types(major, minor, revision)
-  type_arr = []
-  type_arr = ['long', 'longstr', 'octet', 'timestamp'] if (major == '8' and minor == '0' and revision == '0')
-  type_arr
+def add_types(spec)
+  spec_v8_0_0?(spec) ? ['long', 'longstr', 'octet', 'timestamp'] : []
 end
 
-def add_methods(major, minor, revision)
+def add_methods(spec)
   meth_arr = []
   
-  if (major == '8' and minor == '0' and revision == '0')
+  if spec_v8_0_0?(spec)
     # Add Queue Unbind method
     meth_hash = {:name => 'unbind',
                  :index => '50',
@@ -158,7 +136,7 @@ def add_methods(major, minor, revision)
 end
 
 def convert_type(name)
-  type_arr = @type_conversion.select {|k,v| k == name}
+  type_arr = @type_conversion.select {|k,v| k == name}.flatten
 end
 
 # Start of Main program
@@ -172,7 +150,7 @@ path = Pathname.new(specpath)
 specfile = path.basename.to_s
 
 # Read in the spec file
-doc = Nokogiri::XML(File.new(specpath))
+spec = JSON.parse(IO.read(specpath))
 
 # Declare type conversion hash
 @type_conversion = {'path' => 'shortstr',
@@ -215,10 +193,10 @@ doc = Nokogiri::XML(File.new(specpath))
                    }
         
 # Spec details
-spec_info = spec_details(doc)
+spec_info = spec_details(spec)
 
 # Constants
-constants = process_constants(doc)
+constants = process_constants(spec)
 
 # Frame constants
 frame_constants = constants[0].select {|k,v| k <= 8}
@@ -228,10 +206,10 @@ frame_footer = constants[0].select {|k,v| v == 'End'}[0][0]
 other_constants = constants[1]
 
 # Domain types
-data_types = domain_types(doc, spec_info['major'], spec_info['minor'], spec_info['revision'])
+data_types = domain_types(spec, spec_info['major'], spec_info['minor'], spec_info['revision'])
 
 # Classes
-class_defs = classes(doc, spec_info['major'], spec_info['minor'], spec_info['revision'])
+class_defs = classes(spec, spec_info['major'], spec_info['minor'], spec_info['revision'])
 
 # Generate spec.rb
 spec_rb = File.open(CONFIG[:spec_out], 'w')
