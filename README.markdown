@@ -6,15 +6,15 @@ The aim of the Qrack project is to produce a Ruby implementation of the [AMQP](h
 
 [amqp](http://github.com/tmm1/amqp) written by Aman Gupta already contains an implementation which will be used as the basis for this project. Some initial thoughts -
 
-* The XML AMQP specification documents will be the source from which Ruby protocol classes will be generated.
+* The RabbitMQ AMQP JSON specification documents will be the source from which Ruby protocol classes will be generated due to licensing issues concerning the AMQP XML specification documents.
 
 * Qrack should provide all of the Ruby classes necessary to implement the AMQP specification communication functionality whether mandatory or otherwise.
 
 * Qrack should generate the classes from a particular version of the AMQP specification. Therefore, if you generate from the 0-9-1 spec you get a set of 0-9-1 protocol classes.
 
-* Nokogiri will be used for XML parsing, because although there is no parsing speed issue, REXML does not seem to work with Ruby 1.9. An XML specification will only need to be parsed once to produce the protocol classes and then the library will be ready for use.
+* A JSON specification will only need to be parsed once to produce the protocol classes and then the library will be ready for use.
 
-* There should be no dependency on particular versions of the AMQP XML specification.
+* There should be no dependency on particular versions of the AMQP JSON specification.
 
 * Qrack should be vendor neutral.
 
